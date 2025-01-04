@@ -13,7 +13,7 @@ export const checkUser= async() =>{
         })
         if(loggedInUser) return loggedInUser
 
-        const name = `${user.firstName} ${user.lastName}`;
+        const name = `${user.firstName} ${user.lastName || ''}`;
         const newUser= await db.user.create({
             data:{
                 clerkUserId:user.id,
