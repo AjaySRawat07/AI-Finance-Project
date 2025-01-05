@@ -53,7 +53,7 @@ const BudgetProgress: React.FC<BudgetProgressProps> = ({
       return;
     }
 
-    await updateBudgetFn({ id: initialBudget.id, amount }); // Pass correct payload
+    await updateBudgetFn(amount); // Pass correct payload
   };
 
   useEffect(() => {
