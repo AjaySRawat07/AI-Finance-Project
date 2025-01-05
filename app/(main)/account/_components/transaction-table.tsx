@@ -1,5 +1,6 @@
 "use client";
 
+import { bulkDeleteTransactions } from "@/actions/accounts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,10 +18,13 @@ import {
   } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
+import useFetch from "@/hooks/useFetch";
 import { compareAsc, format } from "date-fns";
-import { ChevronDown, ChevronUp, Clock, MoreHorizontal, RefreshCcw, RefreshCw, Search, Trash, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Clock, MoreHorizontal, RefreshCcw, RefreshCw, Search, Trash, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {BarLoader} from "react-spinners"
+import { toast } from "sonner";
 
 type Transaction = {
   id: string;
@@ -58,6 +62,8 @@ type SortConfig = {
   direction: "asc" | "desc";
 };
 
+const ITEMS_PER_PAGE: number=10
+
 const TransactionTable = ({ transactions }:TransactionPageProps) => {
   const router= useRouter()
   const [selectedIds, setSelectedIds] =useState<string[]>([])
@@ -69,6 +75,29 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [typeFilter, setTypeFilter] = useState<string>('')
   const [recurringFilter, setRecurringFIlter] = useState<string>('')
+  const [currentPage, setCurrentPage] = useState<number>(1)
+
+  const {
+    loading: deleteLoading,
+    fn: deleteFn,
+    data: deleted,
+  } = useFetch(bulkDeleteTransactions)
+
+  const handleBulkDelete = async () => {
+    if(!window.confirm(
+      `Are your sure you want to delete ${selectedIds.length} transactions?`
+    )) {
+      return
+    };
+    deleteFn(selectedIds);
+  };
+
+  useEffect(()=>{
+    if(deleted && !deleteLoading){
+        toast.success("Transactions deleted succcessfully");
+      }
+      setSelectedIds([])
+  },[deleteLoading, deleted])
 
   const filterAndSortTransations=useMemo(()=>{
     let result=[...transactions];
@@ -118,6 +147,18 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
     return result
   },[ transactions, searchTerm,typeFilter, recurringFilter, sortConfig]);
 
+  const totalPages = Math.ceil(
+    filterAndSortTransations.length / ITEMS_PER_PAGE
+  );
+
+  const PaginatedTransactions= useMemo(()=>{
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filterAndSortTransations.slice(
+      startIndex,
+      startIndex + ITEMS_PER_PAGE
+    );
+  },[filterAndSortTransations, currentPage])
+
   const handleSort = (field: string) => {
     setSortConfig((current) => ({
       field,
@@ -140,10 +181,6 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
       : filterAndSortTransations.map((trans)=>trans.id)
    )
   };
-
-  const handleBulkDelete = () => {
-   
-  };
   
   const handleClearFiters = () => {
     setSearchTerm('')
@@ -152,8 +189,17 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
     setSelectedIds([])
   };
   
+  const handlePageChange = (newPage:number) => {
+    setCurrentPage(newPage);
+    setSelectedIds([]); // Clear selections on page change
+  };
+
+  
     return (
       <div className="space-y-4">
+        {deleteLoading && (
+          <BarLoader className='mt-4' width='100%' color="#9333ea" />
+        )}
         {/* Filters */}
 
         <div className="flex flex-col sm:flex-row gap-4">
@@ -269,7 +315,7 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filterAndSortTransations.length===0?
+              {PaginatedTransactions.length===0?
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground">
                     No transactions found
@@ -277,7 +323,7 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
                 </TableRow> 
               :
               (
-                filterAndSortTransations.map((transaction)=>{
+                PaginatedTransactions.map((transaction)=>{
                   return (
                     <TableRow key={transaction.id}>
                       <TableCell>
@@ -374,7 +420,7 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              // onClick={()=>deleteFn}
+                              onClick={()=>deleteFn([transaction.id])}
                             >
                               Delete 
                             </DropdownMenuItem>
@@ -390,6 +436,31 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
             </TableBody>
           </Table>
         </div>
+
+        {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       </div>
     );
   };
