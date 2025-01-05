@@ -3,7 +3,7 @@ import {
   howItWorksData,
   statsData,
   testimonialsData,
-} from "@/components/data/landing";
+} from "@/data/landing";
 import HeroSection from "@/components/HeroSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

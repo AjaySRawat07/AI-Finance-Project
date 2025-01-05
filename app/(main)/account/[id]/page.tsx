@@ -25,7 +25,7 @@ const AccountPage: React.FC<AccountPageProps> = async ({ params }) => {
     <div className="space-y-8 py-5">
       <div className="flex gap-4 items-end justify-between">
         <div>
-          <h1 className="text-5xl sm:text-6xl font-bol gradient-title capitalize">{account.name}</h1>
+          <h1 className="text-4xl sm:text-5xl font-bol gradient-title capitalize">{account.name}</h1>
           <p className="text-muted-foreground"> {account.type.charAt(0) + account.type.slice(1).toLowerCase()} Account</p>
         </div>
 
