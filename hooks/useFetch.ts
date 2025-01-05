@@ -5,7 +5,7 @@ type Callback<T> = (data: any) => Promise<T>;
 
 type UseFetchReturn<T> = {
   data: T | undefined;
-  error: string | null;
+  error: any | null;
   fn: (...args: unknown[]) => Promise<void>;
   loading: boolean;
   setData: React.Dispatch<React.SetStateAction<T | undefined>>;
