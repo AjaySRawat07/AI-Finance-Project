@@ -116,9 +116,7 @@ const AccountChart = ({ transactions }:TransactionPageProps)  => {
                             return <SelectItem key={key} value={key}>
                                 {label}
                             </SelectItem>
-
                         })}
-                        <SelectItem value="EXPENSE">Expense</SelectItem>
                     </SelectContent>
                 </Select>
             </CardHeader>
