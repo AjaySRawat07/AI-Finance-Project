@@ -5,10 +5,10 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
 type DataInterface = {
-    name: String
-    type: String
-    balance: Number
-    isDefault:Boolean
+    name: string
+    type: string
+    balance: number
+    isDefault:boolean
 };
 
 const serializeTransation= (object: any)=>{
@@ -53,7 +53,7 @@ export async function createAccount(data :DataInterface){
             });
         };
 
-        const account= db.account.create({
+        const account= await db.account.create({
             data: {
                 ...data,
                 balance:balanceFloat,
@@ -61,7 +61,7 @@ export async function createAccount(data :DataInterface){
                 isDefault:shouldBeDefault
             }
         });
-
+        
         const serializedAccount=serializeTransation(account);
 
         revalidatePath("/dashboard");

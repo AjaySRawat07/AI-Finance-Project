@@ -11,7 +11,7 @@ type UseFetchReturn<T> = {
   setData: React.Dispatch<React.SetStateAction<T | undefined>>;
 };
 
-const useFetch = <T>(callback: Callback<T>): UseFetchReturn<T> => {
+const useFetch = <T>(cb: Callback<T>): UseFetchReturn<T> => {
   const [data, setData] = useState<T | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ const useFetch = <T>(callback: Callback<T>): UseFetchReturn<T> => {
     setError(null);
 
     try {
-      const response = await callback(...args);
+      const response = await cb(...args);
       setData(response);
     } catch (err: any) {
       setError(err.message || "An error occurred");
