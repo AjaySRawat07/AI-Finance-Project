@@ -15,12 +15,13 @@ import { Check, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-type initialBudgetProps = {
+type InitialBudgetProps = {
   id: string;
   amount: number;
 };
+
 interface BudgetProgressProps {
-  initialBudget: initialBudgetProps;
+  initialBudget: InitialBudgetProps;
   currentExpenses: number;
 }
 
@@ -29,14 +30,12 @@ const BudgetProgress: React.FC<BudgetProgressProps> = ({
   currentExpenses,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-
-  console.log(initialBudget, currentExpenses);
-  const [newBudget, setNewBudget] = useState(
-    initialBudget?.amount?.toString() || "",
+  const [newBudget, setNewBudget] = useState<string>(
+    initialBudget?.amount.toString() || "",
   );
 
-  const percentUsed = initialBudget
-    ? (currentExpenses / initialBudget?.amount) * 100
+  const percentUsed = initialBudget?.amount
+    ? (currentExpenses / initialBudget.amount) * 100
     : 0;
 
   const {
@@ -46,34 +45,35 @@ const BudgetProgress: React.FC<BudgetProgressProps> = ({
     error,
   } = useFetch(updateBudget);
 
-  console.log("", updatedBudget, isLoading);
   const handleUpdateBudget = async () => {
     const amount = parseFloat(newBudget);
 
     if (isNaN(amount) || amount <= 0) {
       toast.error("Please enter a valid amount");
+      return;
     }
 
-    await updateBudgetFn(amount);
+    await updateBudgetFn({ id: initialBudget.id, amount }); // Pass correct payload
   };
 
   useEffect(() => {
-    if (updateBudget.success) {
+    if (updatedBudget?.success) {
       setIsEditing(false);
       toast.success("Budget updated successfully");
     }
-  }, [updatedBudget, isLoading]);
+  }, [updatedBudget]);
 
   useEffect(() => {
-    if (updateBudget?.error) {
+    if (error) {
       toast.error(error.message || "Failed to update budget");
     }
   }, [error]);
 
   const handleCancel = () => {
-    setNewBudget(initialBudget?.amount?.toString() || "");
+    setNewBudget(initialBudget?.amount.toString() || "");
     setIsEditing(false);
   };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -104,13 +104,12 @@ const BudgetProgress: React.FC<BudgetProgressProps> = ({
             ) : (
               <>
                 <CardDescription>
-                  {initialBudget &&
-                  typeof currentExpenses === "number" &&
-                  typeof initialBudget === "number"
-                    ? ` $${currentExpenses.toFixed(
+                  {initialBudget
+                    ? `$${currentExpenses.toFixed(
                         2,
-                      )} of $${initialBudget?.amount?.toFixed(2)} spent
-                  `
+                      )} of $${initialBudget.amount.toFixed(
+                        2,
+                      )} spent (${percentUsed.toFixed(2)}%)`
                     : "No budget set"}
                 </CardDescription>
                 <Button
