@@ -65,7 +65,6 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
     field:'date',
     direction:'desc'
   })
-  console.log()
 
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [typeFilter, setTypeFilter] = useState<string>('')
@@ -96,19 +95,22 @@ const TransactionTable = ({ transactions }:TransactionPageProps) => {
     }
 
     //apply sorting
-
     result.sort((a,b) => {
       let comparison=0;
 
       switch(sortConfig.field){
         case "date":
-          comparison = new Date(a.date)- new Date(b.date)
-        case "date":
-          comparison = a.amount- b.amount
+          comparison = new Date(a.date)- new Date(b.date);
+          break;
+        case "amount":
+          comparison = a.amount- b.amount;
+          break
         case "category":
           comparison = a.category.localeCompare(b.category);
+          break;
         default:
-          comparison=0;        
+          comparison=0;   
+          break     
       }
       return sortConfig.direction ==='desc' ? comparison : -comparison
     })
