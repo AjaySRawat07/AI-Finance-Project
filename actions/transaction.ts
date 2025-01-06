@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { isUserExist, serializedAmount } from "./helpers";
 import { db } from "@/lib/prisma";
+import { request } from "@arcjet/next";
+import aj from "@/lib/inngest/arcjet";
 
 type Transaction = {
     type: 'EXPENSE' | 'INCOME';
@@ -20,6 +22,29 @@ export async function createTransaction(data : Transaction) {
     try{
         const user = await isUserExist();
         if(!user) throw new Error("User Not found");
+
+        const req = await request();
+
+        const decision = await aj.protect(req,{
+          userId:user.id,
+          requested:1
+        })
+
+        if(decision.isDenied()){
+          if(decision.reason.isRateLimit()){
+            const { remaining, reset } = decision.reason;
+            console.error({
+              code: "RATE_LIMIT_EXCEEDED",
+              details:{
+                remaining,
+                resetInSeconds:reset
+              }
+            })
+            throw new Error("Too many request. please try again later")
+          }
+          throw new Error("Request blocked")
+        }
+
 
         const { accountId, type, amount } = data
 
