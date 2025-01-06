@@ -81,6 +81,7 @@ enum RecurringInterval {
   WEEKLY
   MONTHLY
   YEARLY
+  COMPLETED
 }
 
 enum TransactionStatus {

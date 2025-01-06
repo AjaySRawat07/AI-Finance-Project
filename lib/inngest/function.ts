@@ -1,7 +1,7 @@
-import { getMonth } from "date-fns";
+import { sendEmail } from "@/actions/send_email";
 import { db } from "../prisma";
 import { inngest } from "./client";
-import { number } from "zod";
+import EmailTemplate from "@/emails/template";
 
 export const checkBudgetAlert = inngest.createFunction(
   { id: "Check Budget Alerts" },
@@ -24,6 +24,9 @@ export const checkBudgetAlert = inngest.createFunction(
     });
 
     for (const budget of budgets) {
+      const defaultAccount = budget.user.accounts[0];
+      if (!defaultAccount) continue; // skip on No default account
+
       await step.run(`check-budget-${budget.id}`, async () => {
         const startDate = new Date();
         startDate.setDate(1); //start of current month
@@ -57,7 +60,7 @@ export const checkBudgetAlert = inngest.createFunction(
         });
 
         const totalExpenses = expenses._sum.amount?.toNumber() || 0;
-        const budgetAmount = parseFloat(budget.amount || "0");
+        const budgetAmount = budget.amount || "0";
         const percentageUsed = (totalExpenses / budgetAmount) * 100;
 
         if (
@@ -67,6 +70,20 @@ export const checkBudgetAlert = inngest.createFunction(
         ) {
           // send Email
 
+          await sendEmail({
+            to: budget.user.email,
+            subject: `Budget Alert for ${defaultAccount.name}`,
+            react: EmailTemplate({
+              userName: budget.user.name,
+              type: "budget-alert",
+              data: {
+                percentageUsed,
+                budgetAmount: parseInt(budgetAmount).toFixed(1),
+                totalExpenses: parseInt(totalExpenses).toFixed(1),
+                accountName: defaultAccount.name,
+              },
+            }),
+          });
           //Update lastAlertSend
           await db.budget.update({
             where: { id: budget.id },
