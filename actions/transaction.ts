@@ -1,5 +1,7 @@
+"use server"
+
 import { revalidatePath } from "next/cache";
-import { isUserExist } from "./helpers";
+import { isUserExist, serializedAmount } from "./helpers";
 import { db } from "@/lib/prisma";
 
 type Transaction = {
@@ -8,7 +10,9 @@ type Transaction = {
     id: string;
     category: string;
     amount: number;
-    date: string;
+    date: Date;
+    isRecurring: boolean;
+    recurringInterval: string;
   };
 
   
@@ -28,21 +32,53 @@ export async function createTransaction(data : Transaction) {
         const balanceChange = type==='EXPENSE' ? -amount : amount
         const newBalance= account.balance.toNumber() + balanceChange
 
-        // const transaction = await db.$transaction(async(tx)=>{
-        //     const newTransaction = await tx.transaction.create({
-        //         data:{
-        //             ...data,
-        //             userId:user.id,
-        //             nextRecurringDate: data.isRecurring && 
-        //         }
-        //     })
-        // })
+        const transaction = await db.$transaction(async(tx)=>{
+            const newTransaction = await tx.transaction.create({
+                data:{
+                    ...data,
+                    userId:user.id,
+                    nextRecurringDate:
+                     data.isRecurring &&  data.recurringInterval ? calculateNextRecurringDate(data.date, data.recurringInterval)
+                     :null
+                }
+            });
 
-        return {success : true }
+            await tx.account.update({
+                where: { id: data.accountId },
+                data: {balance : newBalance}
+            })
+            return newTransaction
+        });
+
+        revalidatePath('/dashboard')
+        revalidatePath(`/account/${transaction.accountId}`)
+
+        return { success:true, data: serializedAmount(transaction)}
     }
     catch(error){
-        const errorMessage = error instanceof Error ? error.message : error;
-        return { success: false, error: errorMessage || "An unknown error occurred"}
+        console.log(error)
+        return  new Error('Unknown Error Occured')
        
     }
 }
+
+function calculateNextRecurringDate(startDate: Date, interval : string) {
+    const date = new Date(startDate);
+  
+    switch (interval) {
+      case "DAILY":
+        date.setDate(date.getDate() + 1);
+        break;
+      case "WEEKLY":
+        date.setDate(date.getDate() + 7);
+        break;
+      case "MONTHLY":
+        date.setMonth(date.getMonth() + 1);
+        break;
+      case "YEARLY":
+        date.setFullYear(date.getFullYear() + 1);
+        break;
+    }
+  
+    return date;
+  }

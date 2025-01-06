@@ -32,3 +32,8 @@ export const isUserExist = async () => {
     return false;
   }
 };
+
+export const serializedAmount = (object: any) => ({
+  ...object,
+  amount: object.amount.toNumber(),
+})
