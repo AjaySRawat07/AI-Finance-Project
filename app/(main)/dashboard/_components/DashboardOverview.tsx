@@ -109,7 +109,7 @@ export function DashboardOverview({ accounts, transactions }:DashboardOverViewPr
   );
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-2 mb-4">
       {/* Recent Transactions Card */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
