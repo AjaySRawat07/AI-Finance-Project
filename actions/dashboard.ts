@@ -11,6 +11,7 @@ type DataInterface = {
     isDefault:boolean
 };
 
+
 export async function createAccount(data :DataInterface){
     try{
         const user = await isUserExist();
@@ -91,4 +92,17 @@ export async function getUserAccounts() {
             throw new Error("An unknown error occurred");
         }
     }
+}
+
+export async function getDashboardData() {
+    const user = await isUserExist();
+    if(!user) throw new Error("User Not found");
+    
+    // Get all user transactions
+    const transactions = await db.transaction.findMany({
+      where: { userId: user.id },
+      orderBy: { date: "desc" },
+    });
+  
+    return transactions.map(serializeTransation);
 }
