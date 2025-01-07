@@ -261,14 +261,14 @@ function calculateNextRecurringDate(startDate: Date, interval: string | null) {
   return date;
 }
 
-type StatType={
-  totalExpenses:number,
-  totalIncome:number,
-}
-async function generateFinancialINsights(stats:StatType,month:string){
-  try{
-    const genAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
-    const model= genAi.getGenerativeModel({ model:"gemini-1.5-flash"});
+type StatType = {
+  totalExpenses: number;
+  totalIncome: number;
+};
+async function generateFinancialINsights(stats: StatType, month: string) {
+  try {
+    const genAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+    const model = genAi.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
       Analyze this financial data and provide 3 concise, actionable insights.
@@ -287,14 +287,14 @@ async function generateFinancialINsights(stats:StatType,month:string){
       ["insight 1", "insight 2", "insight 3"]
     `;
 
-    try{
+    try {
       const result = await model.generateContent(prompt);
 
       const response = await result.response;
       const text = response.text();
 
-      const cleanedText =  text.replace(/```(?:json)?\n?/g, "").trim();
-      return JSON.parse(cleanedText)
+      const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
+      return JSON.parse(cleanedText);
     } catch (parseError) {
       console.error("Error parsing JSON response:", parseError);
       return [
@@ -302,14 +302,12 @@ async function generateFinancialINsights(stats:StatType,month:string){
         "Consider setting up a budget for better financial management.",
         "Track your recurring expenses to identify potential savings.",
       ];
-      }
     }
-    catch(error){
-      console.error("Error scanning receipt:", error);
-      throw new Error("Failed to scan receipt");
-    }
+  } catch (error) {
+    console.error("Error scanning receipt:", error);
+    throw new Error("Failed to scan receipt");
+  }
 }
-
 
 export const generateMonthlyReports = inngest.createFunction(
   {
@@ -353,10 +351,10 @@ export const generateMonthlyReports = inngest.createFunction(
     }
 
     return { processed: users.length };
-  }
+  },
 );
 
-async function getMonthlyStats(userId:string, month:Date) {
+async function getMonthlyStats(userId: string, month: Date) {
   const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
   const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
 
@@ -387,6 +385,6 @@ async function getMonthlyStats(userId:string, month:Date) {
       totalIncome: 0,
       byCategory: {},
       transactionCount: transactions.length,
-    }
+    },
   );
 }
