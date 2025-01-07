@@ -1,7 +1,9 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
+import { $Enums } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
-export const serializeTransation = (object: any) => {
+export const serializeTransation = (object) => {
   const serialized = { ...object };
   if (object.balance) {
     serialized.balance = object.balance.toNumber();
@@ -33,7 +35,7 @@ export const isUserExist = async () => {
   }
 };
 
-export const serializedAmount = (object: any) => ({
+export const serializedAmount = (object) => ({
   ...object,
   amount: object.amount.toNumber(),
-})
+});
