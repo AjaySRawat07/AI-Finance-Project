@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react'
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { ReceiptScanner } from './ReciptScanner';
 
 
 type AccountType= {
@@ -29,7 +30,14 @@ type AccountType= {
   isDefault: boolean
 }
 
-  
+type ScanReceiptReturn = {
+  amount: number;
+  date: Date;
+  description: string;
+  category: string;
+  merchantName: string;
+};
+
 type TransactionPageProps = {
   accounts: AccountType[];
   categories: string[];
@@ -90,9 +98,22 @@ const AddTransactionForm = ({accounts, categories}:TransactionPageProps) => {
     }
   },[transactionResult, transactionloading])
 
+  const handleScanComplete =(scannedData:ScanReceiptReturn)=>{
+    if(scannedData){
+      setValue('amount', scannedData.amount.toString());
+      setValue('date', new Date(scannedData.date));
+      if(scannedData.description){
+        setValue('description', scannedData.description);
+      }
+      if(scannedData.category){
+        setValue('category', scannedData.category);
+      }
+    }
+  }
+
   return (
     <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-      {/* Ai reciept scanner */}
+      <ReceiptScanner onScanComplete={handleScanComplete}/>
 
       <div className='space-y-2'>
         <label className='text-sm font-medium'>Type</label>
