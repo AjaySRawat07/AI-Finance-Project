@@ -216,7 +216,20 @@ export const processRecurringTransaction = inngest.createFunction(
   },
 );
 
-function isTransactionDue(transaction) {
+type TransactionProps = {
+  type: "EXPENSE" | "INCOME";
+  accountId: string;
+  id: string;
+  category: string;
+  amount: number;
+  date: Date;
+  isRecurring: boolean;
+  recurringInterval: string;
+  lastProcessed: Date;
+  nextRecurringDate: Date;
+};
+
+function isTransactionDue(transaction: TransactionProps) {
   // if no lastProcessed date, transaction is due
   if (!transaction.lastProcessed) return true;
 
@@ -227,7 +240,7 @@ function isTransactionDue(transaction) {
   return nextDue <= today;
 }
 
-function calculateNextRecurringDate(startDate: Date, interval: string) {
+function calculateNextRecurringDate(startDate: Date, interval: string | null) {
   const date = new Date(startDate);
 
   switch (interval) {
