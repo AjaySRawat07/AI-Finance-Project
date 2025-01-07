@@ -2,7 +2,7 @@ import { sendEmail } from "@/actions/send_email";
 import { db } from "../prisma";
 import { inngest } from "./client";
 import EmailTemplate from "@/emails/template";
-import { transactionSchema } from "@/app/lib/schema";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const checkBudgetAlert = inngest.createFunction(
   { id: "Check Budget Alerts" },
@@ -246,4 +246,49 @@ function calculateNextRecurringDate(startDate: Date, interval: string) {
   }
 
   return date;
+}
+
+async function generateFinancialINsights(stats,month){
+  try{
+    const genAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+    const model= genAi.getGenerativeModel({ model:"gemini-1.5-flash"});
+
+    const prompt = `
+      Analyze this financial data and provide 3 concise, actionable insights.
+      Focus on spending patterns and practical advice.
+      Keep it friendly and conversational.
+
+      Financial Data for ${month}:
+      - Total Income: $${stats.totalIncome}
+      - Total Expenses: $${stats.totalExpenses}
+      - Net Income: $${stats.totalIncome - stats.totalExpenses}
+      - Expense Categories: ${Object.entries(stats.byCategory)
+        .map(([category, amount]) => `${category}: $${amount}`)
+        .join(", ")}
+
+      Format the response as a JSON array of strings, like this:
+      ["insight 1", "insight 2", "insight 3"]
+    `;
+
+    try{
+      const result = await model.generateContent(prompt);
+
+      const response = await result.response;
+      const text = response.text();
+
+      const cleanedText =  text.replace(/```(?:json)?\n?/g, "").trim();
+      return JSON.parse(cleanedText)
+    } catch (parseError) {
+      console.error("Error parsing JSON response:", parseError);
+      return [
+        "Your highest expense category this month might need attention.",
+        "Consider setting up a budget for better financial management.",
+        "Track your recurring expenses to identify potential savings.",
+      ];
+      }
+    }
+    catch(error){
+      console.error("Error scanning receipt:", error);
+      throw new Error("Failed to scan receipt");
+    }
 }

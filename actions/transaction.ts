@@ -7,7 +7,7 @@ import { request } from "@arcjet/next";
 import aj from "@/lib/inngest/arcjet";
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
-const genAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const genAi = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 type Transaction = {
     type: 'EXPENSE' | 'INCOME';
