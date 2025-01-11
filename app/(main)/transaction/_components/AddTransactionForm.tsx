@@ -125,14 +125,18 @@ const AddTransactionForm = ({
   };
 
   useEffect(() => {
-    if (transactionResult && transactionResult.success && !transactionloading) {
+    if (
+      transactionResult &&
+      transactionResult?.success &&
+      !transactionloading
+    ) {
       toast.success(
         editMode ?
           "Transaction updated sucessfully"
         : "Transaction create sucessfully",
       );
       reset();
-      router.push(`/account/${transactionResult.data.accountId}`);
+      router.push(`/account/${transactionResult?.data?.accountId}`);
     }
   }, [transactionResult, transactionloading, editMode]);
 
