@@ -1,3 +1,6 @@
 Full Stack AI Fianace Platform with Next JS, Supabase, Tailwind, Prisma, Inngest, ArcJet, Shadcn UI Tutorial 🔥🔥
 
-Screenshot 2024-12-10 at 9 45 45 AM
+HOST_LINK ->https://your-finance-buddy.netlify.app/
+
+![image](https://github.com/user-attachments/assets/77c714c0-1663-4c46-abdb-0f26bc11b467)
+
